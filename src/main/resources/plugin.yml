@@ -1,0 +1,6 @@
+name: ${project.artifactId}
+version: ${project.version}
+description: ${plugin-description}
+author: ${plugin-author}
+database: false
+main: ru.dpohvar.hedera.Plugin

@@ -1,0 +1,5 @@
+repositories:
+- ibiblio
+- http://varscript.ru/artifactory/release
+dependencies:
+- org.codehaus.groovy:groovy-all:2.2.2:indy

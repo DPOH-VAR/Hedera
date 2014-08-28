@@ -1,0 +1,21 @@
+<ivysettings>
+    <caches defaultCacheDir="${ivy.basedir}/plugins/${project.artifactId}/ivy"/>
+
+    <settings defaultResolver="default" />
+    <resolvers>
+
+        <filesystem name="local">
+            <ivy pattern="/${repo.dir}/[organisation]/[module]/ivy-[revision].xml" />
+            <artifact pattern="/${repo.dir}/[organisation]/[module]/[artifact]-[revision].[ext]" />
+        </filesystem>
+
+        <ibiblio name="central" m2compatible="true"/>
+
+        <chain name="default" returnFirst="true">
+            <resolver ref="local"/>
+            <resolver ref="central"/>
+        </chain>
+
+    </resolvers>
+
+</ivysettings>
