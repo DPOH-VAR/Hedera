@@ -12,7 +12,7 @@ public class ResourceManager {
             file.getParentFile().mkdirs();
             try (
                     FileOutputStream fos = new FileOutputStream(file);
-                    InputStream is = Plugin.class.getClassLoader().getResourceAsStream(resource)
+                    InputStream is = HederaPlugin.class.getClassLoader().getResourceAsStream(resource)
             ) {
                 PipeUtil.pipe(is, fos, 0x100);
             } catch (IOException e) {

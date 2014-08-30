@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
-        <plugin-description>Load dependencies</plugin-description>
+        <plugin-description>Load Ivy dependencies</plugin-description>
         <plugin-author>DPOH-VAR</plugin-author>
         <java-version>1.7</java-version>
         <ivy-version>2.3.0</ivy-version>
@@ -15,7 +15,7 @@
 
     <groupId>ru.dpohvar.hedera</groupId>
     <artifactId>Hedera</artifactId>
-    <version>0.1</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <distributionManagement>
@@ -49,7 +49,7 @@
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>
             <version>${ivy-version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

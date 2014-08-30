@@ -45,7 +45,11 @@ public class IvyLoader {
         settings.load(settingsURL);
         ivy.setSettings(settings);
         ivy.bind();
-        return ivy.resolve(ivySource);
+        ResolveOptions resolveOptions = new ResolveOptions()
+                .setConfs(new String[]{"default"})
+                .setOutputReport(false)
+                .setValidate(true);
+        return ivy.resolve(ivySource,resolveOptions);
     }
 
     public ResolveReport load(URL settingsURL, ModuleRevisionId mrId) throws IOException, ParseException {
@@ -56,7 +60,7 @@ public class IvyLoader {
         ResolveOptions resolveOptions = new ResolveOptions()
                 .setConfs(new String[]{"default"})
                 .setOutputReport(false)
-                .setValidate(false);
+                .setValidate(true);
         return ivy.resolve(mrId, resolveOptions, true);
     }
 

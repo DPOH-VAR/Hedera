@@ -1,4 +1,4 @@
 ivy:
-  download-url: http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.3.0/ivy-2.3.0.jar
-  jar: plugins/${project.artifactId}/ivy-2.3.0.jar
+  download-url: http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/${ivy-version}/ivy-${ivy-version}.jar
+  jar: plugins/${project.artifactId}/ivy-${ivy-version}.jar
   cache: plugins/${project.artifactId}/ivy

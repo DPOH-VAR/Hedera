@@ -11,13 +11,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static ru.dpohvar.hedera.Plugin.pluginClassLoader;
-import static ru.dpohvar.hedera.Plugin.pluginHome;
+import static ru.dpohvar.hedera.HederaPlugin.pluginClassLoader;
+import static ru.dpohvar.hedera.HederaPlugin.pluginHome;
 import static ru.dpohvar.hedera.ResourceManager.copyResource;
 
 public class Hedera {
@@ -30,12 +31,12 @@ public class Hedera {
     private IvyLoader ivyLoader;
     private Logger logger = Bukkit.getLogger();
     private URL defaultIvySettingsXml;
+    private Map<String, ResolveReport> resolveReports = new HashMap<>();
 
-    Hedera(){
+    private Hedera(){
         File configFile = new File(pluginHome, "config.yml");
         File ivysettingsFile = new File(pluginHome, "ivysettings.xml");
         copyResource("config.yml", configFile);
-        copyResource("ivy.xml", new File(pluginHome, "ivy.xml"));
         copyResource("ivysettings.xml", new File(pluginHome, "ivysettings.xml"));
         try { defaultIvySettingsXml = ivysettingsFile.toURI().toURL();}
         catch (MalformedURLException ignored) { /* never happen */ }
@@ -47,12 +48,20 @@ public class Hedera {
         ivyLoader = new IvyLoader(pluginClassLoader, ivyDownloadURL, ivyJarFile);
     }
 
+    public boolean hasReport(String pluginName){
+        return resolveReports.containsKey(pluginName);
+    }
+
+    public ResolveReport getReport(String pluginName){
+        return resolveReports.get(pluginName);
+    }
+
     void checkPlugins(){
         for (File pluginFile : getAllPluginsFiles()) {
             try {
                 checkPlugin(pluginFile);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Hedera: can not check dependencies: "+pluginFile, e);
+                logger.log(Level.WARNING, "Hedera: can not check dependencies: "+pluginFile,e);
             }
         }
     }
@@ -61,14 +70,22 @@ public class Hedera {
         // check plugin depends on Hedera
         URL pluginYmlResource = getResourceURL(pluginFile, "plugin.yml");
         Map pluginYml = YamlReader.read(pluginYmlResource);
-        Object dependYml = pluginYml.get("depend");
-        if (!(dependYml instanceof List)) return;
-        if (!((List)dependYml).contains("Hedera")) return;
+        String pluginName = (String) pluginYml.get("name");
+        Object depend = pluginYml.get("depend");
+        Object softdepend = pluginYml.get("softdepend");
+
+        boolean hasDependency = false;
+        if (depend instanceof List && ((List)depend).contains(HederaPlugin.pluginName)) hasDependency = true;
+        if (softdepend instanceof List && ((List)softdepend).contains(HederaPlugin.pluginName)) hasDependency = true;
+        if (!hasDependency) return;
+
+        // put null-report
+        resolveReports.put(pluginName,null);
 
         // get ivy.xml and ivysettings.xml
         URL ivyXmlResource = getResourceURL(pluginFile,"ivy.xml");
         if (!checkURL(ivyXmlResource)) {
-            logger.log(Level.WARNING, "Hedera: ivy.xml not found in "+pluginFile);
+            logger.log(Level.WARNING, "Hedera: ivy.xml not found in " + pluginFile);
             return;
         }
         URL ivysettingsXmlResource = getResourceURL(pluginFile,"ivysettings.xml");
@@ -76,12 +93,17 @@ public class Hedera {
 
         // resolve dependencies
         ResolveReport report = ivyLoader.load(ivysettingsXmlResource, ivyXmlResource);
-        logger.log(Level.INFO, "Hedera: "+pluginFile.getName()+" report: "+report);
-        for (ArtifactDownloadReport r: report.getAllArtifactsReports()) {
-            JarLoader.load(pluginClassLoader, r.getLocalFile());
-            logger.log(Level.INFO, "Hedera: "+pluginFile.getName()+" file: "+r.getLocalFile());
+        resolveReports.put(pluginName,report);
+        if (report.hasError()) {
+            List problems = report.getAllProblemMessages();
+            String message = "Error on load dependencies "+ pluginFile.getName() +"\n" + problems;
+            logger.log(Level.WARNING, message);
+            throw new RuntimeException(message);
         }
-
+        for (ArtifactDownloadReport r: report.getAllArtifactsReports()) {
+            logger.log(Level.INFO, "load "+r.getLocalFile());
+            JarLoader.load(pluginClassLoader, r.getLocalFile());
+        }
     }
 
     private static List<File> getAllPluginsFiles(){
